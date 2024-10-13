@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#2b506e"/>
+
+    <!-- External CSS and JS resources -->
+    <link rel="stylesheet" href="https://cdn.plyr.io/3.6.2/plyr.css" />
+    <link href="https://cdn.jsdelivr.net/gh/halfmoonui/halfmoon@1.0.4/css/halfmoon.min.css" rel="stylesheet" />
+    <script src="https://kit.fontawesome.com/bf2610f0a2.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <script src="https://cdn.plyr.io/3.6.2/plyr.polyfilled.js"></script>
+
+ 
+</head>
+<body class="dark-mode with-custom-scrollbars with-custom-css-scrollbars">
+
+    <!-- Video Player -->
+    <video id="player" controls preload="metadata" poster="" class="plyr">
+        <!-- Source will be set dynamically -->
+        <source id="videoSource" type="application/x-mpegURL" />
+    </video>
+
+    <!-- JavaScript to handle HLS playback and Plyr integration -->
+    <script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const video = document.querySelector("video");
+        const sourceElement = document.querySelector("#videoSource");
+
+        // Function to get query parameters
+        function getQueryParam(param) {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get(param);
+        }
+
+        // Get the video URL from query parameters
+        const videoSrc = getQueryParam("url");
+
+        if (videoSrc) {
+            sourceElement.src = videoSrc;
+            const playerOptions = {};
+
+            if (Hls.isSupported()) {
+                const hls = new Hls({ maxMaxBufferLength: 100 });
+                hls.loadSource(videoSrc);
+                hls.attachMedia(video);
+                hls.on(Hls.Events.MANIFEST_PARSED, function(event, data) {
+                    const availableQualities = hls.levels.map(level => level.height);
+                    playerOptions.quality = {
+                        default: availableQualities[0],
+                        options: availableQualities,
+                        forced: true,
+                        onChange: quality => {
+                            hls.levels.forEach((level, index) => {
+                                if (level.height === quality) hls.currentLevel = index;
+                            });
+                        }
+                    };
+                    new Plyr(video, playerOptions);
+                });
+                window.hls = hls;
+            } else {
+                new Plyr(video, playerOptions);
+            }
+        } else {
+            alert("No video URL specified in the query parameter.");
+        }
+    });
+
+    // Confirmation and redirection to Telegram
+    if (confirm("Join Our Telegram Channel @star_ccricket")) {
+        window.location.href = "https://telegram.me/star_ccricket";
+    }
+    </script>
+
+</body>
+</html>
